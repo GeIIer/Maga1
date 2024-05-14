@@ -17,4 +17,9 @@ public class CarByteParser implements ParserDao<Car> {
             throw new RuntimeException(e);
         }
     }
+
+    @Override
+    public boolean isValidFile(String fileType) {
+        return "BIN".equals(fileType);
+    }
 }

@@ -10,6 +10,9 @@ import org.example.vehicle.factory.CarFactory;
 import org.example.vehicle.factory.VehicleFactory;
 import org.example.vehicle.utils.StringAdapter;
 import org.example.vehicle.utils.VehicleUtil;
+import org.example.vehicle.utils.dao.CarByteParser;
+import org.example.vehicle.utils.dao.CarTextParser;
+import org.example.vehicle.utils.dao.ParserDao;
 import org.example.vehicle.utils.strategy.LinearSearch;
 import org.example.vehicle.utils.strategy.LinearStreamSearch;
 import org.example.vehicle.utils.strategy.Search;
@@ -18,13 +21,8 @@ import org.example.vehicle.utils.writers.VehicleColumnWriter;
 import org.example.vehicle.utils.writers.VehicleRowWriter;
 import org.example.vehicle.utils.writers.VehicleWriter;
 
-import java.io.ByteArrayOutputStream;
-import java.io.FileOutputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Random;
+import java.io.*;
+import java.util.*;
 
 public class Main {
     public static Properties properties = ReadProperties.getProperties();
@@ -109,6 +107,18 @@ public class Main {
         System.out.println("-----Visitor------");
         System.out.println("Bike");
         bikeTest.accept(prw);
+
+        System.out.println("-----DAO------");
+        ParserDao<Car> txtParser = new CarTextParser();
+        ParserDao<Car> byteParser = new CarByteParser();
+        ArrayList<Car> cars = new ArrayList<>();
+        cars.add(car);
+        try (FileOutputStream fileOutputStream = new FileOutputStream("src/main/resources/daoTestBin.txt");
+             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
+            objectOutputStream.writeObject(cars);
+        }
+        daoParser("src/main/resources/daoTest.txt", "TXT", List.of(txtParser, byteParser));
+        daoParser("src/main/resources/daoTestBin.txt", "BIN", List.of(txtParser, byteParser));
     }
 
     private static void printProperties() {
@@ -172,5 +182,14 @@ public class Main {
         thread1.join();
         thread2.join();
         VehicleUtil.printVehicle(volvoTest);
+    }
+
+    private static void daoParser(String filename, String fileType, List<ParserDao<Car>> parserDaos) {
+        for (ParserDao<Car> parserDao: parserDaos) {
+            if (parserDao.isValidFile(fileType)) {
+                List<Car> res = parserDao.readAll(filename);
+                res.forEach(System.out::println);
+            }
+        }
     }
 }

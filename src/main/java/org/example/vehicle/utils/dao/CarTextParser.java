@@ -23,27 +23,7 @@ public class CarTextParser implements ParserDao<Car> {
                 String input = br.readLine();
                 Matcher matcher = patternMark.matcher(input);
                 if (matcher.find()) {
-                    Car car = new Car(matcher.group(1));
-                    Matcher matcherModels = patternModels.matcher(input);
-                    while (matcherModels.find()) {
-                        String modelString = matcherModels.group(1);
-                        String[] parts = modelString.split(", ");
-                        String name = null;
-                        Double price = null;
-                        for (String part : parts) {
-                            if (part.startsWith("Название = '")) {
-                                name = (part.substring(12, part.length() - 1));
-                            } else if (part.startsWith("Цена = ")) {
-                                price = (Double.parseDouble(part.substring(7)));
-                            }
-                        }
-                        if (name != null && price != null) {
-                            car.addNewModel(name, price);
-                        } else {
-                            throw new RuntimeException();
-                        }
-
-                    }
+                    Car car = getCar(matcher, patternModels, input);
                     result.add(car);
                 }
 
@@ -52,5 +32,35 @@ public class CarTextParser implements ParserDao<Car> {
         } catch (IOException | DuplicateModelNameException e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @Override
+    public boolean isValidFile(String fileType) {
+        return "TXT".equals(fileType);
+    }
+
+    private static Car getCar(Matcher matcher, Pattern patternModels, String input) throws DuplicateModelNameException {
+        Car car = new Car(matcher.group(1));
+        Matcher matcherModels = patternModels.matcher(input);
+        while (matcherModels.find()) {
+            String modelString = matcherModels.group(1);
+            String[] parts = modelString.split(", ");
+            String name = null;
+            Double price = null;
+            for (String part : parts) {
+                if (part.startsWith("Название = '")) {
+                    name = (part.substring(12, part.length() - 1));
+                } else if (part.startsWith("Цена = ")) {
+                    price = (Double.parseDouble(part.substring(7)));
+                }
+            }
+            if (name != null && price != null) {
+                car.addNewModel(name, price);
+            } else {
+                throw new RuntimeException();
+            }
+
+        }
+        return car;
     }
 }
