@@ -2,28 +2,39 @@ package org.example.vehicle.utils.dao;
 
 import org.example.exception.DuplicateModelNameException;
 import org.example.vehicle.Car;
+import org.example.vehicle.Vehicle;
 
-import java.io.BufferedReader;
-import java.io.FileReader;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
-public class CarTextParser implements ParserDao<Car> {
+public class VehicleTextParser implements ParserDao<Vehicle> {
     @Override
-    public List<Car> readAll(String filename) {
+    public void write(String filename, List<Vehicle> objects) {
+        try (FileWriter fw = new FileWriter(filename);
+             PrintWriter pw = new PrintWriter(fw)) {
+            for(Vehicle vehicle : objects) {
+                pw.println(vehicle.toString());
+            }
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
+    @Override
+    public List<Vehicle> readAll(String filename) {
         try (FileReader fr = new FileReader(filename);
              BufferedReader br = new BufferedReader(fr)) {
             Pattern patternMark = Pattern.compile("Марка = '(.+?)'");
             Pattern patternModels = Pattern.compile("Model\\[(Название = '.*?', Цена = \\d+\\.\\d+)]");
-            List<Car> result = new ArrayList<>();
+            List<Vehicle> result = new ArrayList<>();
             while (br.ready()) {
                 String input = br.readLine();
                 Matcher matcher = patternMark.matcher(input);
                 if (matcher.find()) {
-                    Car car = getCar(matcher, patternModels, input);
+                    Vehicle car = getVehicle(matcher, patternModels, input);
                     result.add(car);
                 }
 
@@ -39,7 +50,7 @@ public class CarTextParser implements ParserDao<Car> {
         return "TXT".equals(fileType);
     }
 
-    private static Car getCar(Matcher matcher, Pattern patternModels, String input) throws DuplicateModelNameException {
+    private static Vehicle getVehicle(Matcher matcher, Pattern patternModels, String input) throws DuplicateModelNameException {
         Car car = new Car(matcher.group(1));
         Matcher matcherModels = patternModels.matcher(input);
         while (matcherModels.find()) {

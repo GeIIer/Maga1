@@ -3,6 +3,7 @@ package org.example;
 import org.example.configuration.ReadProperties;
 import org.example.exception.DuplicateModelNameException;
 import org.example.exception.NoSuchModelNameException;
+import org.example.vehicle.Bike;
 import org.example.vehicle.Car;
 import org.example.vehicle.Vehicle;
 import org.example.vehicle.factory.BikeFactory;
@@ -10,9 +11,8 @@ import org.example.vehicle.factory.CarFactory;
 import org.example.vehicle.factory.VehicleFactory;
 import org.example.vehicle.utils.StringAdapter;
 import org.example.vehicle.utils.VehicleUtil;
-import org.example.vehicle.utils.dao.CarByteParser;
-import org.example.vehicle.utils.dao.CarTextParser;
 import org.example.vehicle.utils.dao.ParserDao;
+import org.example.vehicle.utils.dao.VehicleByteParserFactory;
 import org.example.vehicle.utils.strategy.LinearSearch;
 import org.example.vehicle.utils.strategy.LinearStreamSearch;
 import org.example.vehicle.utils.strategy.Search;
@@ -109,16 +109,26 @@ public class Main {
         bikeTest.accept(prw);
 
         System.out.println("-----DAO------");
-        ParserDao<Car> txtParser = new CarTextParser();
-        ParserDao<Car> byteParser = new CarByteParser();
-        ArrayList<Car> cars = new ArrayList<>();
-        cars.add(car);
-        try (FileOutputStream fileOutputStream = new FileOutputStream("src/main/resources/daoTestBin.txt");
-             ObjectOutputStream objectOutputStream = new ObjectOutputStream(fileOutputStream)) {
-            objectOutputStream.writeObject(cars);
-        }
-        daoParser("src/main/resources/daoTest.txt", "TXT", List.of(txtParser, byteParser));
-        daoParser("src/main/resources/daoTestBin.txt", "BIN", List.of(txtParser, byteParser));
+        Vehicle vehicle = new Car("CarDao", 5);
+        System.out.println(vehicle);
+
+        ParserDao<Vehicle> dao = VehicleUtil.createDao();
+        dao.write("src/main/resources/daoTest.txt", List.of(vehicle));
+        List<Vehicle> read = dao.readAll("src/main/resources/daoTest.txt");
+
+        System.out.println("--------------------------------");
+        System.out.println(read);
+
+        vehicle = new Bike("BikeDao", 4);
+        System.out.println(vehicle);
+
+        VehicleUtil.setDaoFactory(new VehicleByteParserFactory());
+        dao = VehicleUtil.createDao();
+        dao.write("src/main/resources/daoTestBin.txt", List.of(vehicle));
+        List<Vehicle> read2 = dao.readAll("src/main/resources/daoTestBin.txt");
+
+        System.out.println("--------------------------------");
+        System.out.println(read2);
     }
 
     private static void printProperties() {
@@ -184,10 +194,10 @@ public class Main {
         VehicleUtil.printVehicle(volvoTest);
     }
 
-    private static void daoParser(String filename, String fileType, List<ParserDao<Car>> parserDaos) {
-        for (ParserDao<Car> parserDao: parserDaos) {
+    private static void daoParser(String filename, String fileType, List<ParserDao<Vehicle>> parserDaos) {
+        for (ParserDao<Vehicle> parserDao: parserDaos) {
             if (parserDao.isValidFile(fileType)) {
-                List<Car> res = parserDao.readAll(filename);
+                List<Vehicle> res = parserDao.readAll(filename);
                 res.forEach(System.out::println);
             }
         }

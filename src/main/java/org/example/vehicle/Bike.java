@@ -7,6 +7,7 @@ import org.example.exception.NoSuchModelNameException;
 import org.example.vehicle.utils.visitor.Visitor;
 
 import java.io.Serializable;
+import java.util.Arrays;
 import java.util.StringJoiner;
 
 public class Bike implements Vehicle {
@@ -49,14 +50,16 @@ public class Bike implements Vehicle {
 
     @Override
     public String toString() {
-        StringJoiner sj = new StringJoiner(", ", Bike.class.getSimpleName() + "[", "]")
-                .add("Марка = '" + mark + "'")
-                .add("Линейка моделей (" + size + ") = ");
         Model p = head.next;
+        Model[] models = new Model[size];
         for (int i = 0; i < lengthModels(); i++) {
-            sj.add(p.toString());
+            models[i] = p;
             p = p.next;
         }
+        StringJoiner sj = new StringJoiner(", ", Bike.class.getSimpleName() + "[", "]")
+                .add("Марка = '" + mark + "'")
+                .add("Линейка моделей (" + size + ") = " + Arrays.toString(models));
+        sj.add(Arrays.toString(models));
         return sj.toString();
     }
 
@@ -255,7 +258,7 @@ public class Bike implements Vehicle {
 
         @Override
         public String toString() {
-            return new StringJoiner(" ", Model.class.getSimpleName() + "[", "]")
+            return new StringJoiner(", ", Model.class.getSimpleName() + "[", "]")
                     .add("Название = '" + modelName + "'")
                     .add("Цена = " + price)
                     .toString();

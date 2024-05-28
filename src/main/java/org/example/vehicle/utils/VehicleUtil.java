@@ -7,6 +7,9 @@ import org.example.vehicle.factory.CarFactory;
 import org.example.vehicle.factory.VehicleFactory;
 import org.example.vehicle.utils.command.VehicleColumnWriteCommand;
 import org.example.vehicle.utils.command.VehicleCommand;
+import org.example.vehicle.utils.dao.ParserDao;
+import org.example.vehicle.utils.dao.ParserDaoFactory;
+import org.example.vehicle.utils.dao.VehicleTextParserFactory;
 import org.example.vehicle.utils.writers.VehicleWriter;
 
 import java.io.OutputStreamWriter;
@@ -15,9 +18,14 @@ public class VehicleUtil {
     private static VehicleFactory factory = new CarFactory();
     private static VehicleWriter vehicleWriter;
     private static VehicleCommand vehicleCommand = new VehicleColumnWriteCommand();
+    private static ParserDaoFactory<Vehicle> daoFactory = new VehicleTextParserFactory();
 
     public static void setFactory(VehicleFactory factory) {
         VehicleUtil.factory = factory;
+    }
+
+    public static void setDaoFactory(ParserDaoFactory<Vehicle> daoFactory) {
+        VehicleUtil.daoFactory = daoFactory;
     }
 
     public static void setVehicleWriter(VehicleWriter vehicleWriter) {
@@ -42,6 +50,9 @@ public class VehicleUtil {
 
     public static Vehicle createInstance(String mark, int size){
         return factory.createInstant(mark, size);
+    }
+    public static ParserDao<Vehicle> createDao() {
+        return daoFactory.createDao();
     }
 
     public static double getAvg(Vehicle vehicle) {
