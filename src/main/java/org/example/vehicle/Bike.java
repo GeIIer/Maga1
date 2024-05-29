@@ -28,6 +28,11 @@ public class Bike implements Vehicle {
         createList(size);
     }
 
+    public Bike(String markName) {
+        this.mark = markName;
+        createList(size);
+    }
+
     public int getSize() {
         return size;
     }

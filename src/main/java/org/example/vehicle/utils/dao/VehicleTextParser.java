@@ -1,6 +1,7 @@
 package org.example.vehicle.utils.dao;
 
 import org.example.exception.DuplicateModelNameException;
+import org.example.vehicle.Bike;
 import org.example.vehicle.Car;
 import org.example.vehicle.Vehicle;
 
@@ -27,6 +28,8 @@ public class VehicleTextParser implements ParserDao<Vehicle> {
     public List<Vehicle> readAll(String filename) {
         try (FileReader fr = new FileReader(filename);
              BufferedReader br = new BufferedReader(fr)) {
+            Pattern patternClassCar = Pattern.compile("^(Car)");
+            Pattern patternClassBike = Pattern.compile("^(Bike)");
             Pattern patternMark = Pattern.compile("Марка = '(.+?)'");
             Pattern patternModels = Pattern.compile("Model\\[(Название = '.*?', Цена = \\d+\\.\\d+)]");
             List<Vehicle> result = new ArrayList<>();
@@ -34,8 +37,15 @@ public class VehicleTextParser implements ParserDao<Vehicle> {
                 String input = br.readLine();
                 Matcher matcher = patternMark.matcher(input);
                 if (matcher.find()) {
-                    Vehicle car = getVehicle(matcher, patternModels, input);
-                    result.add(car);
+                    Matcher carClass = patternClassCar.matcher(input);
+                    Matcher bikeClass = patternClassBike.matcher(input);
+                    Vehicle vehicle = null;
+                    if (carClass.find()) {
+                        vehicle = getVehicle(true, matcher, patternModels, input);
+                    } else if (bikeClass.find()) {
+                        vehicle = getVehicle(false, matcher, patternModels, input);
+                    }
+                    result.add(vehicle);
                 }
 
             }
@@ -50,8 +60,13 @@ public class VehicleTextParser implements ParserDao<Vehicle> {
         return "TXT".equals(fileType);
     }
 
-    private static Vehicle getVehicle(Matcher matcher, Pattern patternModels, String input) throws DuplicateModelNameException {
-        Car car = new Car(matcher.group(1));
+    private static Vehicle getVehicle(Boolean zclass, Matcher matcher, Pattern patternModels, String input) throws DuplicateModelNameException {
+        Vehicle vehicle;
+        if (zclass) {
+            vehicle = new Car(matcher.group(1));
+        } else {
+            vehicle = new Bike(matcher.group(1));
+        }
         Matcher matcherModels = patternModels.matcher(input);
         while (matcherModels.find()) {
             String modelString = matcherModels.group(1);
@@ -66,12 +81,12 @@ public class VehicleTextParser implements ParserDao<Vehicle> {
                 }
             }
             if (name != null && price != null) {
-                car.addNewModel(name, price);
+                vehicle.addNewModel(name, price);
             } else {
                 throw new RuntimeException();
             }
 
         }
-        return car;
+        return vehicle;
     }
 }
